@@ -3642,7 +3642,10 @@ Please confirm when done!`;
         if (token) {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
-            loadDashboard();
+            loadDashboard().catch(err => {
+                console.error('Failed to load dashboard:', err);
+                // Dashboard load failed but buttons still work
+            });
         }
     </script>
 </body>

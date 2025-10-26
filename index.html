@@ -1793,8 +1793,15 @@
                     method: 'PUT',
                     body: JSON.stringify({
                         phone_number: data.get('phone_number'),
-                        va_id: data.get('va_id') ? parseInt(data.get('va_id')) : null,
-                        notes: data.get('notes')
+                        assigned_to_va_id: data.get('va_id') ? parseInt(data.get('va_id')) : null,
+                        notes: data.get('notes'),
+                        handout_date: data.get('handout_date') || null,
+                        apple_id_email: data.get('apple_id_email') || null,
+                        apple_id_password: data.get('apple_id_password') || null,
+                        proxy_ip: data.get('proxy_ip') || null,
+                        proxy_port: data.get('proxy_port') ? parseInt(data.get('proxy_port')) : null,
+                        proxy_username: data.get('proxy_username') || null,
+                        proxy_password: data.get('proxy_password') || null
                     })
                 });
                 hideModal('edit-phone-modal');

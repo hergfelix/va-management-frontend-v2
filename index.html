@@ -399,6 +399,11 @@
                     <label>Creator Name *</label>
                     <input type="text" name="creator_name" required>
                 </div>
+                <div class="form-group">
+                    <label>Wallet Address</label>
+                    <input type="text" name="wallet_address" placeholder="0x...">
+                    <small style="color: #888; font-size: 12px;">Crypto wallet for payments</small>
+                </div>
                 <button type="submit" class="btn btn-success" style="width: 100%;">Add Creator</button>
             </form>
         </div>
@@ -427,6 +432,11 @@
                 <div class="form-group">
                     <label>Creator Name</label>
                     <input type="text" name="creator_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Wallet Address</label>
+                    <input type="text" name="wallet_address" id="edit-creator-wallet" placeholder="0x...">
+                    <small style="color: #888; font-size: 12px;">Crypto wallet for payments</small>
                 </div>
                 <button type="submit" class="btn btn-success" style="width: 100%;">Save Changes</button>
             </form>
@@ -1451,6 +1461,7 @@
                         if (creator) {
                             document.querySelector('#edit-creator-form [name="id"]').value = creator.id;
                             document.querySelector('#edit-creator-form [name="creator_name"]').value = creator.creator_name;
+                            document.getElementById('edit-creator-wallet').value = creator.wallet_address || '';
 
                             // Show existing photo if available
                             if (creator.profile_photo_url) {
@@ -1691,7 +1702,8 @@
                     method: 'POST',
                     body: JSON.stringify({
                         creator_name: data.get('creator_name'),
-                        profile_photo_url: data.get('profile_photo_url') || null
+                        profile_photo_url: data.get('profile_photo_url') || null,
+                        wallet_address: data.get('wallet_address') || null
                     })
                 });
                 hideModal('add-creator-modal');
@@ -1713,7 +1725,8 @@
                     method: 'PUT',
                     body: JSON.stringify({
                         creator_name: data.get('creator_name'),
-                        profile_photo_url: data.get('profile_photo_url') || null
+                        profile_photo_url: data.get('profile_photo_url') || null,
+                        wallet_address: data.get('wallet_address') || null
                     })
                 });
                 hideModal('edit-creator-modal');

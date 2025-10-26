@@ -164,8 +164,6 @@
         <div class="tabs">
             <button data-tab="dashboard" class="tab active">Dashboard</button>
             <button data-tab="vas" class="tab">Virtual Assistants</button>
-            <button data-tab="onboardings" class="tab">Onboardings</button>
-            <button data-tab="offboardings" class="tab">Offboardings</button>
             <button data-tab="creators" class="tab">Creators</button>
             <button data-tab="payments" class="tab">Payments</button>
             <button data-tab="phones" class="tab">Phones</button>
@@ -180,20 +178,6 @@
         <div id="vas-section" class="section">
             <button data-action="add-va" class="btn btn-primary" style="margin-bottom: 20px;">Add VA</button>
             <div id="va-list"></div>
-        </div>
-
-        <!-- Onboardings Section -->
-        <div id="onboardings-section" class="section">
-            <h2 style="margin-bottom: 20px; font-size: 24px;">Pending Onboardings</h2>
-            <p style="color: #888; margin-bottom: 20px;">VAs who haven't completed their onboarding checklist yet</p>
-            <div id="onboarding-list"></div>
-        </div>
-
-        <!-- Offboardings Section -->
-        <div id="offboardings-section" class="section">
-            <h2 style="margin-bottom: 20px; font-size: 24px;">Offboarded VAs</h2>
-            <p style="color: #888; margin-bottom: 20px;">Archived VAs with offboarding details</p>
-            <div id="offboarding-list"></div>
         </div>
 
         <!-- Creators Section -->
@@ -485,8 +469,7 @@
 
                 <div class="form-group" id="phone-transfer-group" style="display: none;">
                     <label>Transfer Phone From</label>
-                    <input type="text" id="phone-from-va-search" placeholder="Search VAs..." style="margin-bottom: 8px; padding: 8px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff; width: 100%;">
-                    <select name="phone_from_va_id" id="phone-from-va-select" size="5" style="width: 100%; max-height: 150px;">
+                    <select name="phone_from_va_id" id="phone-from-va-select">
                         <option value="">Select VA...</option>
                     </select>
                     <small style="color: #888; font-size: 12px;">Which VA is transferring their phone to this VA?</small>
@@ -547,8 +530,7 @@
 
                 <div class="form-group" id="offboard-phone-transfer-group" style="display: none;">
                     <label>Transfer Phone To</label>
-                    <input type="text" id="offboard-phone-transfer-search" placeholder="Search VAs..." style="margin-bottom: 8px; padding: 8px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff; width: 100%;">
-                    <select name="phone_transferred_to_va_id" id="offboard-phone-transfer-select" size="5" style="width: 100%; max-height: 150px;">
+                    <select name="phone_transferred_to_va_id" id="offboard-phone-transfer-select">
                         <option value="">Select VA...</option>
                     </select>
                 </div>
@@ -1126,92 +1108,6 @@
             }
         }
 
-        async function loadOnboardings() {
-            try {
-                // Get all VAs and filter for those with incomplete onboarding
-                if (!currentData.vas) {
-                    currentData.vas = await api('/vas');
-                }
-
-                const pendingOnboardings = currentData.vas.filter(va =>
-                    va.status === 'active' && !va.onboarding_complete
-                );
-
-                const list = document.getElementById('onboarding-list');
-                if (pendingOnboardings.length === 0) {
-                    list.innerHTML = '<div class="card"><p style="color: #888;">All active VAs have completed onboarding! 🎉</p></div>';
-                    return;
-                }
-
-                list.innerHTML = pendingOnboardings.map(va => `
-                    <div class="card">
-                        <div style="display: flex; align-items: start; gap: 20px;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: white; flex-shrink: 0;">
-                                ${va.full_name.charAt(0).toUpperCase()}
-                            </div>
-                            <div style="flex: 1;">
-                                <h3>${va.full_name}</h3>
-                                <div class="card-info">
-                                    <div><strong>Telegram:</strong> @${va.telegram_handle}</div>
-                                    <div><strong>Type:</strong> ${va.va_type}</div>
-                                    ${va.onboarding_date ? `<div><strong>Started:</strong> ${new Date(va.onboarding_date).toLocaleDateString()}</div>` : ''}
-                                    <div style="color: #f59e0b; margin-top: 10px;">⚠️ Onboarding not complete</div>
-                                </div>
-                                <div class="button-group" style="margin-top: 15px;">
-                                    <button data-action="complete-onboarding" data-id="${va.id}" data-name="${va.full_name}" class="btn btn-success">✓ Complete Onboarding</button>
-                                    <button data-action="edit-va" data-id="${va.id}" class="btn btn-primary">Edit</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.error('Load onboardings failed:', err);
-                showToast('Failed to load onboardings', 'error');
-            }
-        }
-
-        async function loadOffboardings() {
-            try {
-                // Get archived VAs with offboarding details
-                const archivedVAs = await api('/vas/archived/list');
-
-                const list = document.getElementById('offboarding-list');
-                if (archivedVAs.length === 0) {
-                    list.innerHTML = '<div class="card"><p style="color: #888;">No offboarded VAs yet</p></div>';
-                    return;
-                }
-
-                list.innerHTML = archivedVAs.map(va => `
-                    <div class="card">
-                        <div style="display: flex; align-items: start; gap: 20px;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #64748b 0%, #475569 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: white; flex-shrink: 0; opacity: 0.7;">
-                                ${va.full_name.charAt(0).toUpperCase()}
-                            </div>
-                            <div style="flex: 1;">
-                                <h3>${va.full_name} <span style="color: #888; font-size: 14px; font-weight: 400;">(Archived)</span></h3>
-                                <div class="card-info">
-                                    <div><strong>Telegram:</strong> @${va.telegram_handle}</div>
-                                    <div><strong>Type:</strong> ${va.va_type}</div>
-                                    ${va.onboarding_date ? `<div><strong>Joined:</strong> ${new Date(va.onboarding_date).toLocaleDateString()}</div>` : ''}
-                                    ${va.offboarding_date ? `<div><strong>Offboarded:</strong> ${new Date(va.offboarding_date).toLocaleDateString()}</div>` : ''}
-                                    ${va.reason ? `<div><strong>Reason:</strong> ${va.reason}</div>` : ''}
-                                    ${va.final_payment ? `<div><strong>Final Payment:</strong> $${va.final_payment}</div>` : ''}
-                                    ${va.phone_transferred_to_name ? `<div><strong>Phone Transferred To:</strong> ${va.phone_transferred_to_name}</div>` : ''}
-                                </div>
-                                <div class="button-group" style="margin-top: 15px;">
-                                    <button data-action="restore-va" data-id="${va.id}" class="btn btn-success">Restore</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (err) {
-                console.error('Load offboardings failed:', err);
-                showToast('Failed to load offboardings', 'error');
-            }
-        }
-
         // ===== EVENT DELEGATION - ATTACHED IMMEDIATELY =====
         document.addEventListener('click', async function(e) {
             const el = e.target.closest('[data-action]');
@@ -1326,15 +1222,6 @@
                         }
                         break;
 
-                    case 'restore-va':
-                        if (confirm(`Restore ${name}? This will reactivate the VA.`)) {
-                            await api(`/vas/${id}/restore`, { method: 'POST' });
-                            await loadOffboardings();
-                            await loadVAs();
-                            showToast('VA restored successfully!');
-                        }
-                        break;
-
                     case 'add-creator':
                         showModal('add-creator-modal');
                         break;
@@ -1441,8 +1328,6 @@
                     loadPayments();
                 }
                 if (tabName === 'phones') loadPhones();
-                if (tabName === 'onboardings') loadOnboardings();
-                if (tabName === 'offboardings') loadOffboardings();
             }
         });
 

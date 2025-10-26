@@ -1,17 +1,58 @@
 // Onboarding & Offboarding Logic
 
+// Search filtering for VA dropdowns
+function setupDropdownSearch(searchInputId, selectId) {
+    const searchInput = document.getElementById(searchInputId);
+    const select = document.getElementById(selectId);
+
+    if (searchInput && select) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = Array.from(select.options);
+
+            options.forEach(option => {
+                if (option.value === '') {
+                    option.style.display = 'block'; // Always show placeholder
+                } else {
+                    const text = option.textContent.toLowerCase();
+                    option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+                }
+            });
+        });
+    }
+}
+
+// Initialize search functionality when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    setupDropdownSearch('phone-from-va-search', 'phone-from-va-select');
+    setupDropdownSearch('offboard-phone-transfer-search', 'offboard-phone-transfer-select');
+});
+
 // Show/hide phone transfer field based on phone type selection (onboarding)
-document.getElementById('onboarding-phone-type')?.addEventListener('change', function(e) {
+document.getElementById('onboarding-phone-type')?.addEventListener('change', async function(e) {
     const transferGroup = document.getElementById('phone-transfer-group');
     if (e.target.value === 'transfer') {
         transferGroup.style.display = 'block';
-        // Populate VA select with active VAs
+        // Populate VA select with ALL VAs (active + archived) to allow phone transfer from offboarded VAs
         const select = document.getElementById('phone-from-va-select');
         if (currentData.vas) {
+            // Fetch archived VAs as well
+            let archivedVAs = [];
+            try {
+                archivedVAs = await api('/vas/archived/list');
+            } catch (err) {
+                console.error('Failed to fetch archived VAs:', err);
+            }
+
+            // Combine active and archived VAs
+            const allVAs = [...currentData.vas, ...archivedVAs];
+
             select.innerHTML = '<option value="">Select VA...</option>' +
-                currentData.vas
-                    .filter(va => va.status === 'active')
-                    .map(va => `<option value="${va.id}">${va.full_name}</option>`)
+                allVAs
+                    .map(va => {
+                        const label = va.status === 'archived' ? `${va.full_name} (Archived)` : va.full_name;
+                        return `<option value="${va.id}">${label}</option>`;
+                    })
                     .join('');
         }
     } else {
@@ -20,17 +61,30 @@ document.getElementById('onboarding-phone-type')?.addEventListener('change', fun
 });
 
 // Show/hide phone transfer field based on phone handling selection (offboarding)
-document.getElementById('offboard-phone-handling')?.addEventListener('change', function(e) {
+document.getElementById('offboard-phone-handling')?.addEventListener('change', async function(e) {
     const transferGroup = document.getElementById('offboard-phone-transfer-group');
     if (e.target.value === 'transfer') {
         transferGroup.style.display = 'block';
-        // Populate VA select with active VAs
+        // Populate VA select with ALL VAs (active + archived) to allow phone transfer from offboarded VAs
         const select = document.getElementById('offboard-phone-transfer-select');
         if (currentData.vas) {
+            // Fetch archived VAs as well
+            let archivedVAs = [];
+            try {
+                archivedVAs = await api('/vas/archived/list');
+            } catch (err) {
+                console.error('Failed to fetch archived VAs:', err);
+            }
+
+            // Combine active and archived VAs
+            const allVAs = [...currentData.vas, ...archivedVAs];
+
             select.innerHTML = '<option value="">Select VA...</option>' +
-                currentData.vas
-                    .filter(va => va.status === 'active')
-                    .map(va => `<option value="${va.id}">${va.full_name}</option>`)
+                allVAs
+                    .map(va => {
+                        const label = va.status === 'archived' ? `${va.full_name} (Archived)` : va.full_name;
+                        return `<option value="${va.id}">${label}</option>`;
+                    })
                     .join('');
         }
     } else {

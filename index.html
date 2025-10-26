@@ -656,7 +656,8 @@
 
                 <div class="form-group">
                     <label>Handout Date</label>
-                    <input type="date" name="handout_date">
+                    <input type="text" name="handout_date" placeholder="e.g., 2024-10-27 or 27.10.2024">
+                    <small style="color: #888; font-size: 12px;">Enter date in any format</small>
                 </div>
 
                 <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
@@ -730,7 +731,8 @@
 
                 <div class="form-group">
                     <label>Handout Date</label>
-                    <input type="date" name="handout_date" id="edit-phone-handout-date">
+                    <input type="text" name="handout_date" id="edit-phone-handout-date" placeholder="e.g., 2024-10-27 or 27.10.2024">
+                    <small style="color: #888; font-size: 12px;">Enter date in any format</small>
                 </div>
 
                 <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
@@ -1105,8 +1107,8 @@
                 populateCreatorSelects();
                 const list = document.getElementById('creator-list');
                 list.innerHTML = currentData.creators.map(c => {
-                    // Find VAs managing this creator
-                    const managingVAs = currentData.vas ? currentData.vas.filter(va => va.creator_id == c.id) : [];
+                    // Find VAs managing this creator (exclude offboarded VAs)
+                    const managingVAs = currentData.vas ? currentData.vas.filter(va => va.creator_id == c.id && va.status !== 'offboarded') : [];
                     const managingVAsText = managingVAs.length > 0
                         ? managingVAs.map(va => va.full_name).join(', ')
                         : 'No VA assigned';
@@ -1218,7 +1220,7 @@
                         <h3>${p.phone_number}</h3>
                         <div class="card-info">
                             <div><strong>Assigned VA:</strong> ${p.va_name || 'Unassigned'}</div>
-                            ${p.handout_date ? `<div><strong>Handout Date:</strong> ${new Date(p.handout_date).toLocaleDateString()}</div>` : ''}
+                            ${p.handout_date ? `<div><strong>Handout Date:</strong> ${p.handout_date}</div>` : ''}
                             ${p.apple_id_email ? `<div><strong>Apple ID:</strong> ${p.apple_id_email}</div>` : ''}
                             ${p.proxy_ip ? `<div><strong>Proxy:</strong> ${p.proxy_ip}${p.proxy_port ? ':' + p.proxy_port : ''}</div>` : ''}
                             ${p.notes ? `<div><strong>Notes:</strong> ${p.notes}</div>` : ''}
@@ -1515,9 +1517,8 @@
                             document.querySelector('#edit-phone-form [name="phone_number"]').value = phone.phone_number;
                             document.querySelector('#edit-phone-form [name="notes"]').value = phone.notes || '';
 
-                            // Populate new fields
-                            const handoutDate = convertDateFormat(phone.handout_date);
-                            document.getElementById('edit-phone-handout-date').value = handoutDate || '';
+                            // Populate new fields (handout_date as text now)
+                            document.getElementById('edit-phone-handout-date').value = phone.handout_date || '';
                             document.getElementById('edit-phone-apple-id-email').value = phone.apple_id_email || '';
                             document.getElementById('edit-phone-apple-id-password').value = phone.apple_id_password || '';
                             document.getElementById('edit-phone-proxy-ip').value = phone.proxy_ip || '';

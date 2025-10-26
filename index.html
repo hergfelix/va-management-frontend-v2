@@ -675,60 +675,6 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // ===== PAYMENT STAGE CALCULATION =====
-        const PAYMENT_STAGES = [
-            { month: 1, salary: 150 },
-            { month: 2, salary: 200 },
-            { month: 3, salary: 300 }
-        ];
-
-        function calculateWorkMonth(onboardingDate) {
-            if (!onboardingDate) return 0;
-            const start = new Date(onboardingDate);
-            const now = new Date();
-            const yearDiff = now.getFullYear() - start.getFullYear();
-            const monthDiff = now.getMonth() - start.getMonth();
-            const workMonth = (yearDiff * 12) + monthDiff + 1;
-            return Math.max(1, workMonth);
-        }
-
-        function calculateProRatedSalary(onboardingDate, baseSalary) {
-            const start = new Date(onboardingDate);
-            const startDay = start.getDate();
-            if (startDay === 1) return baseSalary;
-            const daysInMonth = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
-            const daysWorked = daysInMonth - startDay + 1;
-            return Math.round((baseSalary / 30) * daysWorked * 100) / 100;
-        }
-
-        function isFirstMonth(onboardingDate) {
-            if (!onboardingDate) return false;
-            const start = new Date(onboardingDate);
-            const now = new Date();
-            return start.getMonth() === now.getMonth() && start.getFullYear() === now.getFullYear();
-        }
-
-        function getPaymentStage(onboardingDate) {
-            if (!onboardingDate) return null;
-            const workMonth = calculateWorkMonth(onboardingDate);
-            const stageIndex = Math.min(workMonth - 1, PAYMENT_STAGES.length - 1);
-            const currentStage = PAYMENT_STAGES[stageIndex];
-            const nextStage = workMonth < PAYMENT_STAGES.length ? PAYMENT_STAGES[workMonth] : null;
-            let actualSalary = currentStage.salary;
-            if (isFirstMonth(onboardingDate)) {
-                actualSalary = calculateProRatedSalary(onboardingDate, currentStage.salary);
-            }
-            return {
-                workMonth,
-                currentStage: workMonth,
-                currentSalary: currentStage.salary,
-                actualSalary: actualSalary,
-                isProRated: isFirstMonth(onboardingDate) && actualSalary !== currentStage.salary,
-                nextStage: nextStage?.month || null,
-                nextSalary: nextStage?.salary || null,
-                isMaxLevel: workMonth >= PAYMENT_STAGES.length
-            };
-        }
 
         // ===== CORE UTILITIES =====
         async function api(endpoint, options = {}) {

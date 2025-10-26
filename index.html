@@ -636,16 +636,62 @@
                     <label>Phone Number *</label>
                     <input type="text" name="phone_number" required>
                 </div>
+
                 <div class="form-group">
                     <label>Assigned VA</label>
                     <select name="va_id" id="phone-va-select">
                         <option value="">None</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Handout Date</label>
+                    <input type="date" name="handout_date">
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #888;">Apple ID Credentials</h4>
+
+                    <div class="form-group">
+                        <label>Apple ID Email</label>
+                        <input type="email" name="apple_id_email" placeholder="example@icloud.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Apple ID Password</label>
+                        <input type="password" name="apple_id_password" placeholder="Apple ID password">
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #888;">Proxy Configuration</h4>
+
+                    <div class="form-group">
+                        <label>Proxy Address</label>
+                        <input type="text" name="proxy_address" placeholder="proxy.example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Port</label>
+                        <input type="text" name="proxy_port" placeholder="8080">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Username</label>
+                        <input type="text" name="proxy_username" placeholder="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Password</label>
+                        <input type="password" name="proxy_password" placeholder="password">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Notes</label>
                     <textarea name="notes" rows="3"></textarea>
                 </div>
+
                 <button type="submit" class="btn btn-success" style="width: 100%;">Add Phone</button>
             </form>
         </div>
@@ -664,16 +710,62 @@
                     <label>Phone Number</label>
                     <input type="text" name="phone_number" required>
                 </div>
+
                 <div class="form-group">
                     <label>Assigned VA</label>
                     <select name="va_id" id="edit-phone-va-select">
                         <option value="">None</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label>Handout Date</label>
+                    <input type="date" name="handout_date" id="edit-phone-handout-date">
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #888;">Apple ID Credentials</h4>
+
+                    <div class="form-group">
+                        <label>Apple ID Email</label>
+                        <input type="email" name="apple_id_email" id="edit-phone-apple-id-email" placeholder="example@icloud.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Apple ID Password</label>
+                        <input type="password" name="apple_id_password" id="edit-phone-apple-id-password" placeholder="Apple ID password">
+                    </div>
+                </div>
+
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                    <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #888;">Proxy Configuration</h4>
+
+                    <div class="form-group">
+                        <label>Proxy Address</label>
+                        <input type="text" name="proxy_address" id="edit-phone-proxy-address" placeholder="proxy.example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Port</label>
+                        <input type="text" name="proxy_port" id="edit-phone-proxy-port" placeholder="8080">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Username</label>
+                        <input type="text" name="proxy_username" id="edit-phone-proxy-username" placeholder="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Proxy Password</label>
+                        <input type="password" name="proxy_password" id="edit-phone-proxy-password" placeholder="password">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Notes</label>
                     <textarea name="notes" rows="3"></textarea>
                 </div>
+
                 <button type="submit" class="btn btn-success" style="width: 100%;">Save Changes</button>
             </form>
         </div>
@@ -1176,13 +1268,21 @@
                 // Get archived VAs with offboarding details
                 const archivedVAs = await api('/vas/archived/list');
 
+                // Deduplicate by VA ID (in case API returns duplicates)
+                const uniqueVAs = archivedVAs.reduce((acc, va) => {
+                    if (!acc.find(v => v.id === va.id)) {
+                        acc.push(va);
+                    }
+                    return acc;
+                }, []);
+
                 const list = document.getElementById('offboarding-list');
-                if (archivedVAs.length === 0) {
+                if (uniqueVAs.length === 0) {
                     list.innerHTML = '<div class="card"><p style="color: #888;">No offboarded VAs yet</p></div>';
                     return;
                 }
 
-                list.innerHTML = archivedVAs.map(va => `
+                list.innerHTML = uniqueVAs.map(va => `
                     <div class="card">
                         <div style="display: flex; align-items: start; gap: 20px;">
                             <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #64748b 0%, #475569 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: white; flex-shrink: 0; opacity: 0.7;">
@@ -1396,6 +1496,17 @@
                             document.querySelector('#edit-phone-form [name="id"]').value = phone.id;
                             document.querySelector('#edit-phone-form [name="phone_number"]').value = phone.phone_number;
                             document.querySelector('#edit-phone-form [name="notes"]').value = phone.notes || '';
+
+                            // Populate new fields
+                            const handoutDate = convertDateFormat(phone.handout_date);
+                            document.getElementById('edit-phone-handout-date').value = handoutDate || '';
+                            document.getElementById('edit-phone-apple-id-email').value = phone.apple_id_email || '';
+                            document.getElementById('edit-phone-apple-id-password').value = phone.apple_id_password || '';
+                            document.getElementById('edit-phone-proxy-address').value = phone.proxy_address || '';
+                            document.getElementById('edit-phone-proxy-port').value = phone.proxy_port || '';
+                            document.getElementById('edit-phone-proxy-username').value = phone.proxy_username || '';
+                            document.getElementById('edit-phone-proxy-password').value = phone.proxy_password || '';
+
                             populateVASelects();
                             document.getElementById('edit-phone-va-select').value = phone.va_id || '';
                             showModal('edit-phone-modal');

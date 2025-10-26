@@ -1208,6 +1208,9 @@
                         <h3>${p.phone_number}</h3>
                         <div class="card-info">
                             <div><strong>Assigned VA:</strong> ${p.va_name || 'Unassigned'}</div>
+                            ${p.handout_date ? `<div><strong>Handout Date:</strong> ${new Date(p.handout_date).toLocaleDateString()}</div>` : ''}
+                            ${p.apple_id_email ? `<div><strong>Apple ID:</strong> ${p.apple_id_email}</div>` : ''}
+                            ${p.proxy_ip ? `<div><strong>Proxy:</strong> ${p.proxy_ip}${p.proxy_port ? ':' + p.proxy_port : ''}</div>` : ''}
                             ${p.notes ? `<div><strong>Notes:</strong> ${p.notes}</div>` : ''}
                         </div>
                         <div class="button-group">

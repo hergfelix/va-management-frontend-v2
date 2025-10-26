@@ -1031,9 +1031,13 @@
         async function loadVAs() {
             try {
                 currentData.vas = await api('/vas');
+
+                // Filter out archived VAs for the Virtual Assistants page
+                const activeVAs = currentData.vas.filter(va => va.status !== 'archived');
+
                 populateVASelects();
                 const list = document.getElementById('va-list');
-                list.innerHTML = currentData.vas.map(va => {
+                list.innerHTML = activeVAs.map(va => {
                     const paymentStage = va.va_type === 'social_media' && va.onboarding_date ? getPaymentStage(va.onboarding_date) : null;
                     const tenure = va.onboarding_date ? calculateTenure(va.onboarding_date) : null;
                     const tenureText = tenure ? `${tenure.months} month${tenure.months !== 1 ? 's' : ''}, ${tenure.days} day${tenure.days !== 1 ? 's' : ''}` : '';

@@ -668,12 +668,12 @@
 
                     <div class="form-group">
                         <label>Proxy Address</label>
-                        <input type="text" name="proxy_address" placeholder="proxy.example.com">
+                        <input type="text" name="proxy_ip" placeholder="proxy.example.com">
                     </div>
 
                     <div class="form-group">
                         <label>Proxy Port</label>
-                        <input type="text" name="proxy_port" placeholder="8080">
+                        <input type="number" name="proxy_port" placeholder="8080">
                     </div>
 
                     <div class="form-group">
@@ -742,12 +742,12 @@
 
                     <div class="form-group">
                         <label>Proxy Address</label>
-                        <input type="text" name="proxy_address" id="edit-phone-proxy-address" placeholder="proxy.example.com">
+                        <input type="text" name="proxy_ip" id="edit-phone-proxy-ip" placeholder="proxy.example.com">
                     </div>
 
                     <div class="form-group">
                         <label>Proxy Port</label>
-                        <input type="text" name="proxy_port" id="edit-phone-proxy-port" placeholder="8080">
+                        <input type="number" name="proxy_port" id="edit-phone-proxy-port" placeholder="8080">
                     </div>
 
                     <div class="form-group">
@@ -1506,7 +1506,7 @@
                             document.getElementById('edit-phone-handout-date').value = handoutDate || '';
                             document.getElementById('edit-phone-apple-id-email').value = phone.apple_id_email || '';
                             document.getElementById('edit-phone-apple-id-password').value = phone.apple_id_password || '';
-                            document.getElementById('edit-phone-proxy-address').value = phone.proxy_address || '';
+                            document.getElementById('edit-phone-proxy-ip').value = phone.proxy_ip || '';
                             document.getElementById('edit-phone-proxy-port').value = phone.proxy_port || '';
                             document.getElementById('edit-phone-proxy-username').value = phone.proxy_username || '';
                             document.getElementById('edit-phone-proxy-password').value = phone.proxy_password || '';

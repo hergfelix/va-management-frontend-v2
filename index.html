@@ -417,6 +417,139 @@
         </div>
     </div>
 
+    <!-- Complete Onboarding Modal -->
+    <div id="complete-onboarding-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Complete Onboarding</h2>
+                <button class="close" data-action="close-modal" data-modal="complete-onboarding-modal">&times;</button>
+            </div>
+            <form id="complete-onboarding-form">
+                <input type="hidden" name="va_id" id="onboarding-va-id">
+
+                <div style="margin-bottom: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #3b82f6;">VA Information</h3>
+                    <div id="onboarding-va-info" style="font-size: 13px; color: #888;"></div>
+                </div>
+
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #e5e7eb;">Onboarding Checklist</h3>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" name="apple_code_provided" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span>Apple Code Provided</span>
+                    </label>
+                    <small style="color: #888; font-size: 12px; margin-left: 30px;">Apple ID/code for app downloads</small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" name="proxy_configured" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span>Proxy Configured</span>
+                    </label>
+                    <small style="color: #888; font-size: 12px; margin-left: 30px;">Proxy settings configured on device</small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" name="training_materials_provided" style="width: 20px; height: 20px; cursor: pointer;">
+                        <span>Training Materials Provided</span>
+                    </label>
+                    <small style="color: #888; font-size: 12px; margin-left: 30px;">SOPs and training documentation shared</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Setup</label>
+                    <select name="phone_type" id="onboarding-phone-type" required>
+                        <option value="">Select phone type...</option>
+                        <option value="new">New Phone</option>
+                        <option value="transfer">Transfer from Another VA</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="phone-transfer-group" style="display: none;">
+                    <label>Transfer Phone From</label>
+                    <select name="phone_from_va_id" id="phone-from-va-select">
+                        <option value="">Select VA...</option>
+                    </select>
+                    <small style="color: #888; font-size: 12px;">Which VA is transferring their phone to this VA?</small>
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%;">✓ Complete Onboarding</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offboard VA Modal -->
+    <div id="offboard-va-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Offboard VA</h2>
+                <button class="close" data-action="close-modal" data-modal="offboard-va-modal">&times;</button>
+            </div>
+            <form id="offboard-va-form">
+                <input type="hidden" name="va_id" id="offboard-va-id">
+
+                <div style="margin-bottom: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; border-left: 4px solid #ef4444;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px; color: #ef4444;">⚠️ Warning</h3>
+                    <div id="offboard-va-info" style="font-size: 13px; color: #888;"></div>
+                    <p style="color: #ef4444; font-size: 13px; margin: 10px 0 0 0;">This action will archive the VA and cannot be undone.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Reason for Offboarding</label>
+                    <select name="reason" required>
+                        <option value="">Select reason...</option>
+                        <option value="performance">Performance Issues</option>
+                        <option value="resignation">Resignation</option>
+                        <option value="contract_end">Contract End</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Details</label>
+                    <textarea name="reason_details" rows="3" placeholder="Additional details about the offboarding..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Final Payment</label>
+                    <input type="number" name="final_payment" step="0.01" min="0" placeholder="e.g., 300.00">
+                    <small style="color: #888; font-size: 12px;">Final payment amount (if applicable)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Handling</label>
+                    <select name="phone_handling" id="offboard-phone-handling" required>
+                        <option value="">Select option...</option>
+                        <option value="transfer">Transfer to Another VA</option>
+                        <option value="inventory">Return to Inventory</option>
+                        <option value="none">No Phone Assigned</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="offboard-phone-transfer-group" style="display: none;">
+                    <label>Transfer Phone To</label>
+                    <select name="phone_transferred_to_va_id" id="offboard-phone-transfer-select">
+                        <option value="">Select VA...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes" rows="2" placeholder="Additional notes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Offboarded By</label>
+                    <input type="text" name="offboarded_by" required placeholder="Your name">
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%; background: #ef4444;">Offboard VA</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Add Payment Group Modal -->
     <div id="add-payment-group-modal" class="modal">
         <div class="modal-content">
@@ -879,6 +1012,11 @@
                         </div>
                         <div class="button-group" style="margin-top: 15px;">
                             <button data-action="edit-va" data-id="${va.id}" class="btn btn-primary">Edit</button>
+                            ${!va.onboarding_complete ? `
+                                <button data-action="complete-onboarding" data-id="${va.id}" data-name="${va.full_name}" class="btn btn-success" style="background: #10b981;">
+                                    ✓ Complete Onboarding
+                                </button>
+                            ` : ''}
                             <button data-action="offboard-va" data-id="${va.id}" data-name="${va.full_name}" class="btn btn-warning">Offboard</button>
                             <button data-action="delete-va" data-id="${va.id}" data-name="${va.full_name}" class="btn btn-danger">Delete</button>
                         </div>
@@ -1586,5 +1724,8 @@
 
         console.log('✅ Complete VA Management System with Onboarding & Payment Flow ready!');
     </script>
+
+    <!-- Onboarding & Offboarding Logic -->
+    <script src="onboarding-offboarding.js"></script>
 </body>
 </html>

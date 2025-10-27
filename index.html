@@ -198,7 +198,12 @@
 
         <!-- Creators Section -->
         <div id="creators-section" class="section">
-            <button data-action="add-creator" class="btn btn-primary" style="margin-bottom: 20px;">Add Creator</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button data-action="add-creator" class="btn btn-primary">Add Creator</button>
+                <button id="sync-assignments-btn" class="btn" style="background: rgba(234, 179, 8, 0.15); border: 1px solid #eab308; color: #fde047;">
+                    🔄 Sync All VA-Creator Assignments
+                </button>
+            </div>
             <div id="creator-list"></div>
         </div>
 
@@ -2191,6 +2196,32 @@ Proxy Password: ${phone.proxy_password || 'Not set'}
         document.getElementById('edit-creator-upload-photo').addEventListener('click', function() {
             cloudinaryWidget.currentContext = 'edit-creator';
             cloudinaryWidget.open();
+        });
+
+        // ===== SYNC ASSIGNMENTS BUTTON =====
+        document.getElementById('sync-assignments-btn')?.addEventListener('click', async function() {
+            if (!confirm('This will sync all VA-Creator assignments from the VAs table to the junction table. Continue?')) {
+                return;
+            }
+
+            try {
+                this.disabled = true;
+                this.textContent = '🔄 Syncing...';
+
+                const result = await api('/admin/migrate-populate-assignments', { method: 'POST' });
+
+                await loadAssignments();
+                await loadCreators();
+
+                alert(`Sync complete!\n\nNew assignments: ${result.details.newAssignments}\nTotal assignments: ${result.details.totalAssignments}`);
+                showToast(`✅ Synced ${result.details.newAssignments} assignments!`, 'success');
+            } catch (err) {
+                console.error('Sync failed:', err);
+                showToast('Sync failed: ' + err.message, 'error');
+            } finally {
+                this.disabled = false;
+                this.textContent = '🔄 Sync All VA-Creator Assignments';
+            }
         });
 
         // ===== VA TYPE CHANGE HANDLERS =====

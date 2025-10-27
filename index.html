@@ -1187,9 +1187,10 @@
                             return va;
                         })
                         .filter(va => {
-                            const keep = va && va.status !== 'offboarded';
+                            // Match the Virtual Assistants tab: exclude archived AND offboarded VAs
+                            const keep = va && va.status !== 'archived' && va.status !== 'offboarded';
                             if (!keep && va) {
-                                console.log(`Filtering out offboarded VA: ${va.full_name}`);
+                                console.log(`Filtering out ${va.status} VA: ${va.full_name}`);
                             }
                             return keep;
                         });

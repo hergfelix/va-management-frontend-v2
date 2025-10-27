@@ -1947,8 +1947,43 @@ Proxy Password: ${phone.proxy_password || 'Not set'}
                     method: 'PUT',
                     body: JSON.stringify(payload)
                 });
+
+                // Also update creator-VA assignments if creator changed
+                const creatorId = data.get('creator_id') ? parseInt(data.get('creator_id')) : null;
+                const oldCreatorId = currentVA?.assigned_to_creator_id;
+
+                if (creatorId !== oldCreatorId) {
+                    // Remove old assignment if exists
+                    if (oldCreatorId) {
+                        try {
+                            await api(`/creator-assignments/${oldCreatorId}/${vaId}`, { method: 'DELETE' });
+                            console.log(`Removed old assignment: Creator ${oldCreatorId} → VA ${vaId}`);
+                        } catch (err) {
+                            console.warn('No old assignment to remove:', err);
+                        }
+                    }
+
+                    // Add new assignment if creator selected
+                    if (creatorId) {
+                        try {
+                            await api('/creator-assignments', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    creator_id: creatorId,
+                                    va_id: parseInt(vaId),
+                                    assigned_date: new Date().toISOString().split('T')[0]
+                                })
+                            });
+                            console.log(`Created new assignment: Creator ${creatorId} → VA ${vaId}`);
+                        } catch (err) {
+                            console.error('Failed to create assignment:', err);
+                        }
+                    }
+                }
+
                 hideModal('edit-va-modal');
                 await loadVAs();
+                await loadCreators(); // Reload creators to show updated assignments
                 showToast('VA updated successfully!');
             } catch (err) {
                 console.error('Edit VA Error:', err);

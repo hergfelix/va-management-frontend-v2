@@ -2045,7 +2045,26 @@
             loadPaymentGroups();
         }
 
+        // Global migration function - call from console with: runMigration()
+        window.runMigration = async function() {
+            try {
+                console.log('🔄 Running migration to populate creator-VA assignments...');
+                const result = await api('/admin/migrate-populate-assignments', { method: 'POST' });
+                console.log('✅ Migration complete!', result);
+                console.log(`📊 New assignments: ${result.details.newAssignments}`);
+                console.log(`📊 Total assignments: ${result.details.totalAssignments}`);
+                // Reload data to reflect changes
+                await loadAssignments();
+                await loadCreators();
+                alert(`Migration complete!\nNew assignments: ${result.details.newAssignments}\nTotal assignments: ${result.details.totalAssignments}`);
+            } catch (err) {
+                console.error('❌ Migration failed:', err);
+                alert('Migration failed: ' + err.message);
+            }
+        };
+
         console.log('✅ Complete VA Management System with Onboarding & Payment Flow ready!');
+        console.log('💡 To run creator-VA assignment migration, type: runMigration()');
     </script>
 
     <!-- Onboarding & Offboarding Logic -->

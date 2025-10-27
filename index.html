@@ -560,6 +560,9 @@
                     </div>
                 </div>
 
+                <button type="button" id="copy-onboarding-details-btn" class="btn" style="width: 100%; margin-bottom: 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa;">
+                    📋 Copy All Details for Supervisor
+                </button>
                 <button type="submit" class="btn btn-success" style="width: 100%;">✓ Complete Onboarding</button>
             </form>
         </div>
@@ -1678,6 +1681,92 @@
             } catch (err) {
                 showToast('Action failed: ' + err.message, 'error');
             }
+        });
+
+        // Copy onboarding details for supervisor
+        document.getElementById('copy-onboarding-details-btn')?.addEventListener('click', function() {
+            const vaId = document.getElementById('onboarding-va-id').value;
+            const va = currentData.vas.find(v => v.id == vaId);
+            if (!va) {
+                showToast('VA not found', 'error');
+                return;
+            }
+
+            // Get phone type selection
+            const phoneType = document.getElementById('onboarding-phone-type').value;
+
+            // Get creator details
+            const creator = currentData.creators.find(c => c.id == va.assigned_to_creator_id);
+            const creatorName = creator ? creator.creator_name : 'Not assigned';
+
+            let phoneDetails = '';
+
+            if (phoneType === 'transfer') {
+                // Get transferred phone details
+                const fromVaId = document.getElementById('phone-from-va-select').value;
+                const fromVa = currentData.vas.find(v => v.id == fromVaId);
+                const transferredPhone = currentData.phones.find(p => p.assigned_to_va_id == fromVaId);
+
+                if (transferredPhone && fromVa) {
+                    phoneDetails = `📞 Phone Number: ${transferredPhone.phone_number} (transferred from ${fromVa.full_name})
+📅 Handout Date: ${transferredPhone.handout_date ? transferredPhone.handout_date.split('T')[0] : 'Not set'}
+
+🍎 Apple ID Credentials:
+Email: ${transferredPhone.apple_id_email || 'Not set'}
+Password: ${transferredPhone.apple_id_password || 'Not set'}
+
+🌐 Proxy Configuration:
+Proxy Address: ${transferredPhone.proxy_ip || 'Not set'}
+Proxy Port: ${transferredPhone.proxy_port || 'Not set'}
+Proxy Username: ${transferredPhone.proxy_username || 'Not set'}
+Proxy Password: ${transferredPhone.proxy_password || 'Not set'}`;
+                } else {
+                    phoneDetails = '📞 Phone: Transferring from another VA (select VA to see details)';
+                }
+            } else if (phoneType === 'new') {
+                // Get new phone details from form
+                const phoneNumber = document.getElementById('onboarding-phone-number').value || 'Not entered';
+                const handoutDate = document.getElementById('onboarding-handout-date').value || 'Not set';
+                const appleEmail = document.getElementById('onboarding-apple-id-email').value || 'Not set';
+                const applePassword = document.getElementById('onboarding-apple-id-password').value || 'Not set';
+                const proxyIp = document.getElementById('onboarding-proxy-ip').value || 'Not set';
+                const proxyPort = document.getElementById('onboarding-proxy-port').value || 'Not set';
+                const proxyUsername = document.getElementById('onboarding-proxy-username').value || 'Not set';
+                const proxyPassword = document.getElementById('onboarding-proxy-password').value || 'Not set';
+
+                phoneDetails = `📞 Phone Number: ${phoneNumber}
+📅 Handout Date: ${handoutDate}
+
+🍎 Apple ID Credentials:
+Email: ${appleEmail}
+Password: ${applePassword}
+
+🌐 Proxy Configuration:
+Proxy Address: ${proxyIp}
+Proxy Port: ${proxyPort}
+Proxy Username: ${proxyUsername}
+Proxy Password: ${proxyPassword}`;
+            } else {
+                phoneDetails = '📞 Phone: Not configured yet';
+            }
+
+            // Format the message
+            const message = `📱 VA Onboarding Details
+
+👤 VA Name: ${va.full_name}
+💬 Telegram: @${va.telegram_handle || 'N/A'}
+🎨 Managing Creator: ${creatorName}
+
+${phoneDetails}
+
+📝 Notes: ${document.getElementById('onboarding-phone-notes')?.value || 'None'}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(message).then(() => {
+                showToast('Onboarding details copied! Ready to send to supervisor ✓', 'success');
+            }).catch(err => {
+                showToast('Failed to copy: ' + err.message, 'error');
+            });
         });
 
         // Copy phone details for supervisor

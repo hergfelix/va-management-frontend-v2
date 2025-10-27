@@ -844,7 +844,7 @@
     <script>
         const API_URL = 'https://va-management-backend-production.up.railway.app/api';
         let token = localStorage.getItem('va_token');
-        let currentData = { vas: [], creators: [], payments: [], phones: [], paymentGroups: [] };
+        let currentData = { vas: [], creators: [], payments: [], phones: [], paymentGroups: [], assignments: [] };
 
         // ===== TOAST NOTIFICATIONS =====
         function showToast(message, type = 'success') {
@@ -1159,14 +1159,29 @@
             }
         }
 
+        async function loadAssignments() {
+            try {
+                currentData.assignments = await api('/creator-assignments');
+            } catch (err) {
+                console.error('Load assignments failed:', err);
+            }
+        }
+
         async function loadCreators() {
             try {
                 currentData.creators = await api('/creators');
+                // Load assignments if not already loaded
+                if (!currentData.assignments || currentData.assignments.length === 0) {
+                    await loadAssignments();
+                }
                 populateCreatorSelects();
                 const list = document.getElementById('creator-list');
                 list.innerHTML = currentData.creators.map(c => {
-                    // Find VAs managing this creator (exclude offboarded VAs)
-                    const managingVAs = currentData.vas ? currentData.vas.filter(va => va.creator_id == c.id && va.status !== 'offboarded') : [];
+                    // Find VAs managing this creator from assignments (exclude offboarded VAs)
+                    const creatorAssignments = currentData.assignments.filter(a => a.creator_id == c.id);
+                    const managingVAs = creatorAssignments
+                        .map(a => currentData.vas.find(v => v.id == a.va_id))
+                        .filter(va => va && va.status !== 'offboarded');
 
                     // Create numbered VA list for better visibility
                     const managingVAsList = managingVAs.length > 0

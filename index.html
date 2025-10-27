@@ -1179,9 +1179,20 @@
                 list.innerHTML = currentData.creators.map(c => {
                     // Find VAs managing this creator from assignments (exclude offboarded VAs)
                     const creatorAssignments = currentData.assignments.filter(a => a.creator_id == c.id);
+                    console.log(`Creator ${c.creator_name} assignments:`, creatorAssignments);
                     const managingVAs = creatorAssignments
-                        .map(a => currentData.vas.find(v => v.id == a.va_id))
-                        .filter(va => va && va.status !== 'offboarded');
+                        .map(a => {
+                            const va = currentData.vas.find(v => v.id == a.va_id);
+                            console.log(`VA ${a.va_id}:`, va ? `${va.full_name} (${va.status})` : 'not found');
+                            return va;
+                        })
+                        .filter(va => {
+                            const keep = va && va.status !== 'offboarded';
+                            if (!keep && va) {
+                                console.log(`Filtering out offboarded VA: ${va.full_name}`);
+                            }
+                            return keep;
+                        });
 
                     // Create numbered VA list for better visibility
                     const managingVAsList = managingVAs.length > 0
@@ -1533,6 +1544,7 @@
                         if (confirm(`Offboard ${name}?`)) {
                             await api(`/vas/${id}/offboard`, { method: 'POST', body: JSON.stringify({ status: 'offboarded' }) });
                             await loadVAs();
+                            await loadCreators(); // Refresh creator list to remove offboarded VAs
                             showToast('VA offboarded successfully!');
                         }
                         break;
@@ -1550,6 +1562,7 @@
                             await api(`/vas/${id}/restore`, { method: 'POST' });
                             await loadOffboardings();
                             await loadVAs();
+                            await loadCreators(); // Refresh creator list to show restored VAs
                             showToast('VA restored successfully!');
                         }
                         break;
@@ -1618,7 +1631,9 @@
                             document.querySelector('#edit-phone-form [name="notes"]').value = phone.notes || '';
 
                             // Populate new fields (handout_date as text now)
-                            document.getElementById('edit-phone-handout-date').value = phone.handout_date || '';
+                            // Extract just the date portion (YYYY-MM-DD) from the ISO string
+                            const handoutDate = phone.handout_date ? phone.handout_date.split('T')[0] : '';
+                            document.getElementById('edit-phone-handout-date').value = handoutDate;
                             document.getElementById('edit-phone-apple-id-email').value = phone.apple_id_email || '';
                             document.getElementById('edit-phone-apple-id-password').value = phone.apple_id_password || '';
                             document.getElementById('edit-phone-proxy-ip').value = phone.proxy_ip || '';

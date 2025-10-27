@@ -255,6 +255,7 @@ document.getElementById('offboard-va-form')?.addEventListener('submit', async fu
 
         hideModal('offboard-va-modal');
         await loadVAs();
+        await loadCreators(); // Refresh creator list to remove offboarded VAs
         showToast('VA offboarded successfully');
     } catch (err) {
         console.error('Offboard VA error:', err);

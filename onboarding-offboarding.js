@@ -28,11 +28,14 @@ document.addEventListener('DOMContentLoaded', function() {
     setupDropdownSearch('offboard-phone-transfer-search', 'offboard-phone-transfer-select');
 });
 
-// Show/hide phone transfer field based on phone type selection (onboarding)
+// Show/hide phone transfer field and phone details based on phone type selection (onboarding)
 document.getElementById('onboarding-phone-type')?.addEventListener('change', async function(e) {
     const transferGroup = document.getElementById('phone-transfer-group');
+    const phoneDetailsGroup = document.getElementById('phone-details-group');
+
     if (e.target.value === 'transfer') {
         transferGroup.style.display = 'block';
+        phoneDetailsGroup.style.display = 'none'; // Hide phone details for transfer
         // Populate VA select with ALL VAs (active + archived) to allow phone transfer from offboarded VAs
         const select = document.getElementById('phone-from-va-select');
         if (currentData.vas) {
@@ -55,8 +58,12 @@ document.getElementById('onboarding-phone-type')?.addEventListener('change', asy
                     })
                     .join('');
         }
+    } else if (e.target.value === 'new') {
+        transferGroup.style.display = 'none';
+        phoneDetailsGroup.style.display = 'block'; // Show phone details for new phone
     } else {
         transferGroup.style.display = 'none';
+        phoneDetailsGroup.style.display = 'none';
     }
 });
 
@@ -119,6 +126,7 @@ document.addEventListener('click', async function(e) {
         document.getElementById('complete-onboarding-form').reset();
         document.getElementById('onboarding-va-id').value = vaId;
         document.getElementById('phone-transfer-group').style.display = 'none';
+        document.getElementById('phone-details-group').style.display = 'none';
 
         // Show modal
         showModal('complete-onboarding-modal');
@@ -166,23 +174,51 @@ document.getElementById('complete-onboarding-form')?.addEventListener('submit', 
     const vaId = data.get('va_id');
 
     try {
+        const phoneType = data.get('phone_type');
         const payload = {
             apple_code_provided: data.get('apple_code_provided') === 'on',
             proxy_configured: data.get('proxy_configured') === 'on',
             training_materials_provided: data.get('training_materials_provided') === 'on',
-            phone_type: data.get('phone_type'),
+            phone_type: phoneType,
             phone_from_va_id: data.get('phone_from_va_id') ? parseInt(data.get('phone_from_va_id')) : null
         };
 
         console.log('Complete Onboarding Payload:', payload);
 
+        // Complete onboarding first
         await api(`/vas/${vaId}/complete-onboarding`, {
             method: 'POST',
             body: JSON.stringify(payload)
         });
 
+        // If phone_type is "new", create the phone with all details
+        if (phoneType === 'new') {
+            const phoneData = {
+                phone_number: data.get('phone_number'),
+                handout_date: data.get('handout_date') || null,
+                apple_id_email: data.get('apple_id_email') || null,
+                apple_id_password: data.get('apple_id_password') || null,
+                proxy_ip: data.get('proxy_ip') || null,
+                proxy_port: data.get('proxy_port') ? parseInt(data.get('proxy_port')) : null,
+                proxy_username: data.get('proxy_username') || null,
+                proxy_password: data.get('proxy_password') || null,
+                notes: data.get('phone_notes') || null,
+                assigned_to_va_id: parseInt(vaId)
+            };
+
+            console.log('Creating new phone:', phoneData);
+
+            await api('/phones', {
+                method: 'POST',
+                body: JSON.stringify(phoneData)
+            });
+        }
+
         hideModal('complete-onboarding-modal');
         await loadVAs();
+        if (phoneType === 'new') {
+            await loadPhones(); // Reload phones if we created one
+        }
         showToast('Onboarding completed successfully! ✓');
     } catch (err) {
         console.error('Complete onboarding error:', err);

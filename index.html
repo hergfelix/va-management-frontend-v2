@@ -502,6 +502,64 @@
                     <small style="color: #888; font-size: 12px;">Which VA is transferring their phone to this VA?</small>
                 </div>
 
+                <div id="phone-details-group" style="display: none; padding: 15px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; margin-top: 15px;">
+                    <h4 style="margin: 0 0 15px 0; font-size: 14px; color: #888;">📱 Phone Details</h4>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone_number" id="onboarding-phone-number" placeholder="+1234567890">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Handout Date</label>
+                        <input type="text" name="handout_date" id="onboarding-handout-date" placeholder="e.g., 2024-10-27 or 27.10.2024">
+                        <small style="color: #888; font-size: 12px;">Enter date in any format</small>
+                    </div>
+
+                    <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: #888;">🍎 Apple ID Credentials</h4>
+
+                        <div class="form-group">
+                            <label>Apple ID Email</label>
+                            <input type="email" name="apple_id_email" id="onboarding-apple-id-email" placeholder="example@icloud.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Apple ID Password</label>
+                            <input type="password" name="apple_id_password" id="onboarding-apple-id-password" placeholder="Apple ID password" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: #888;">🌐 Proxy Configuration</h4>
+
+                        <div class="form-group">
+                            <label>Proxy Address</label>
+                            <input type="text" name="proxy_ip" id="onboarding-proxy-ip" placeholder="proxy.example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Proxy Port</label>
+                            <input type="number" name="proxy_port" id="onboarding-proxy-port" placeholder="8080">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Proxy Username</label>
+                            <input type="text" name="proxy_username" id="onboarding-proxy-username" placeholder="username">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Proxy Password</label>
+                            <input type="password" name="proxy_password" id="onboarding-proxy-password" placeholder="password" autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Notes</label>
+                        <textarea name="phone_notes" id="onboarding-phone-notes" rows="2" placeholder="Any additional notes about this phone..."></textarea>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-success" style="width: 100%;">✓ Complete Onboarding</button>
             </form>
         </div>

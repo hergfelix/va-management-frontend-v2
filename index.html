@@ -836,6 +836,9 @@
                     <textarea name="notes" rows="3"></textarea>
                 </div>
 
+                <button type="button" id="copy-phone-details-btn" class="btn" style="width: 100%; margin-bottom: 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa;">
+                    📋 Copy All Details for Supervisor
+                </button>
                 <button type="submit" class="btn btn-success" style="width: 100%;">Save Changes</button>
             </form>
         </div>
@@ -1644,6 +1647,10 @@
 
                             populateVASelects();
                             document.getElementById('edit-phone-va-select').value = phone.assigned_to_va_id || '';
+
+                            // Store phone data for copy button
+                            window.currentEditingPhone = phone;
+
                             showModal('edit-phone-modal');
                         }
                         break;
@@ -1671,6 +1678,55 @@
             } catch (err) {
                 showToast('Action failed: ' + err.message, 'error');
             }
+        });
+
+        // Copy phone details for supervisor
+        document.getElementById('copy-phone-details-btn')?.addEventListener('click', function() {
+            const phone = window.currentEditingPhone;
+            if (!phone) {
+                showToast('No phone data loaded', 'error');
+                return;
+            }
+
+            // Get VA details
+            const va = currentData.vas.find(v => v.id == phone.assigned_to_va_id);
+            if (!va) {
+                showToast('VA not found', 'error');
+                return;
+            }
+
+            // Get creator details
+            const creator = currentData.creators.find(c => c.id == va.assigned_to_creator_id);
+            const creatorName = creator ? creator.creator_name : 'Not assigned';
+
+            // Format the message
+            const message = `📱 VA Phone Setup Details
+
+👤 VA Name: ${va.full_name}
+💬 Telegram: @${va.telegram_handle || 'N/A'}
+🎨 Managing Creator: ${creatorName}
+
+📞 Phone Number: ${phone.phone_number}
+📅 Handout Date: ${phone.handout_date ? phone.handout_date.split('T')[0] : 'Not set'}
+
+🍎 Apple ID Credentials:
+Email: ${phone.apple_id_email || 'Not set'}
+Password: ${phone.apple_id_password || 'Not set'}
+
+🌐 Proxy Configuration:
+Proxy Address: ${phone.proxy_ip || 'Not set'}
+Proxy Port: ${phone.proxy_port || 'Not set'}
+Proxy Username: ${phone.proxy_username || 'Not set'}
+Proxy Password: ${phone.proxy_password || 'Not set'}
+
+📝 Notes: ${phone.notes || 'None'}`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(message).then(() => {
+                showToast('Phone details copied! Ready to send to supervisor ✓', 'success');
+            }).catch(err => {
+                showToast('Failed to copy: ' + err.message, 'error');
+            });
         });
 
         // Tab switching

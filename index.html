@@ -207,19 +207,83 @@
             <div id="creator-list"></div>
         </div>
 
-        <!-- Payments Section -->
+        <!-- Payments Section - Enterprise Payment Dashboard -->
         <div id="payments-section" class="section">
-            <h2 style="margin-bottom: 20px; font-size: 24px;">Payment Groups</h2>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button data-action="add-payment-group" class="btn btn-primary">Add Payment Group</button>
+            <!-- Payment Period Selector -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="font-size: 28px; margin: 0;">💰 Enterprise Payment Dashboard</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="color: #888;">Period:</label>
+                    <input type="month" id="payment-period" value="" style="padding: 8px 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 14px;">
+                    <button id="load-payment-status" class="btn btn-primary">Load</button>
+                </div>
             </div>
-            <div id="payment-groups-list"></div>
 
-            <h2 style="margin: 40px 0 20px 0; font-size: 24px;">Payment Records</h2>
-            <div style="margin-bottom: 20px;">
-                <button data-action="record-payment" class="btn btn-success">Record Payment</button>
+            <!-- Summary Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;" id="payment-summary">
+                <!-- Stats will be loaded here -->
             </div>
-            <div id="payment-list"></div>
+
+            <!-- Worker List Table -->
+            <div class="card" style="overflow-x: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">All Workers</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="select-all-workers" class="btn" style="background: #2a2a2a; font-size: 13px; padding: 8px 16px;">Select All Unpaid</button>
+                        <button id="pay-selected-workers" class="btn btn-success" disabled>Pay Selected (<span id="selected-count">0</span>)</button>
+                        <button id="generate-messages" class="btn btn-primary" style="background: #8b5cf6;" disabled>Generate Messages</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <select id="filter-status" style="padding: 8px 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 13px;">
+                        <option value="all">All Status</option>
+                        <option value="unpaid" selected>Unpaid Only</option>
+                        <option value="paid">Paid Only</option>
+                    </select>
+                    <select id="filter-group" style="padding: 8px 12px; background: #0f0f0f; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 13px;">
+                        <option value="all">All Groups</option>
+                    </select>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse;" id="workers-table">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #333;">
+                            <th style="padding: 12px 8px; text-align: left; color: #888; font-size: 12px; font-weight: 600;">
+                                <input type="checkbox" id="select-all-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+                            </th>
+                            <th style="padding: 12px 8px; text-align: left; color: #888; font-size: 12px; font-weight: 600;">WORKER</th>
+                            <th style="padding: 12px 8px; text-align: left; color: #888; font-size: 12px; font-weight: 600;">GROUP</th>
+                            <th style="padding: 12px 8px; text-align: left; color: #888; font-size: 12px; font-weight: 600;">CREATOR</th>
+                            <th style="padding: 12px 8px; text-align: right; color: #888; font-size: 12px; font-weight: 600;">BASE</th>
+                            <th style="padding: 12px 8px; text-align: right; color: #888; font-size: 12px; font-weight: 600;">BONUS/PENALTY</th>
+                            <th style="padding: 12px 8px; text-align: right; color: #888; font-size: 12px; font-weight: 600;">TOTAL</th>
+                            <th style="padding: 12px 8px; text-align: center; color: #888; font-size: 12px; font-weight: 600;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workers-table-body">
+                        <tr><td colspan="8" style="padding: 40px; text-align: center; color: #666;">Select a payment period above to load workers</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Quick Actions by Payment Group -->
+            <div style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Quick Pay by Payment Group</h3>
+                <div id="payment-groups-quick" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                    <!-- Payment groups will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Old Payment Groups Section (Legacy) -->
+            <div style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #333;">
+                <h2 style="margin-bottom: 20px; font-size: 20px; color: #888;">📋 Legacy: Payment Groups Management</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button data-action="add-payment-group" class="btn btn-primary">Add Payment Group</button>
+                </div>
+                <div id="payment-groups-list"></div>
+            </div>
         </div>
 
         <!-- Phones Section -->
@@ -1330,6 +1394,375 @@
             }
         }
 
+        // ===== ENTERPRISE PAYMENT DASHBOARD =====
+        let currentPaymentPeriod = '';
+        let currentWorkersData = null;
+        let selectedWorkers = new Set();
+
+        async function initEnterprisePayments() {
+            // Set current month as default
+            const now = new Date();
+            const monthValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('payment-period').value = monthValue;
+            currentPaymentPeriod = monthValue;
+
+            // Load initial payment status
+            await loadPaymentStatus();
+
+            // Setup event listeners
+            document.getElementById('load-payment-status').addEventListener('click', loadPaymentStatus);
+            document.getElementById('select-all-workers').addEventListener('click', selectAllUnpaid);
+            document.getElementById('select-all-checkbox').addEventListener('change', toggleSelectAll);
+            document.getElementById('pay-selected-workers').addEventListener('click', paySelectedWorkers);
+            document.getElementById('generate-messages').addEventListener('click', generatePaymentMessages);
+            document.getElementById('filter-status').addEventListener('change', filterWorkers);
+            document.getElementById('filter-group').addEventListener('change', filterWorkers);
+        }
+
+        async function loadPaymentStatus() {
+            try {
+                currentPaymentPeriod = document.getElementById('payment-period').value;
+                if (!currentPaymentPeriod) {
+                    showToast('Please select a payment period', 'warning');
+                    return;
+                }
+
+                // Show loading state
+                document.getElementById('workers-table-body').innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #666;">Loading workers...</td></tr>';
+
+                // Load worker payment status
+                currentWorkersData = await api(`/workers/payment-status/${currentPaymentPeriod}`);
+                selectedWorkers.clear();
+
+                // Update summary stats
+                updatePaymentSummary(currentWorkersData.summary);
+
+                // Update payment groups quick actions
+                updatePaymentGroupsQuick(currentWorkersData.payment_groups);
+
+                // Update filters
+                updateGroupFilter(currentWorkersData.payment_groups);
+
+                // Render workers table
+                renderWorkersTable(currentWorkersData.workers);
+
+                updateSelectedCount();
+            } catch (err) {
+                console.error('Load payment status failed:', err);
+                showToast('Failed to load payment status: ' + err.message, 'error');
+                document.getElementById('workers-table-body').innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #ef4444;">Failed to load workers. Please try again.</td></tr>';
+            }
+        }
+
+        function updatePaymentSummary(summary) {
+            const summaryDiv = document.getElementById('payment-summary');
+            summaryDiv.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #3b82f6;">${summary.total_workers}</div>
+                    <div class="stat-label">Total Workers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #10b981;">${summary.paid_workers}</div>
+                    <div class="stat-label">Paid</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #f59e0b;">${summary.unpaid_workers}</div>
+                    <div class="stat-label">Unpaid</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #10b981;">$${summary.total_paid}</div>
+                    <div class="stat-label">Total Paid</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #ef4444;">$${summary.total_unpaid}</div>
+                    <div class="stat-label">Remaining</div>
+                </div>
+            `;
+        }
+
+        function updatePaymentGroupsQuick(groups) {
+            const groupsDiv = document.getElementById('payment-groups-quick');
+            if (groups.length === 0) {
+                groupsDiv.innerHTML = '<p style="color: #666;">No payment groups available</p>';
+                return;
+            }
+
+            groupsDiv.innerHTML = groups.map(group => {
+                const unpaidWorkers = group.workers.filter(w => !w.paid);
+                const totalAmount = unpaidWorkers.reduce((sum, w) => sum + parseFloat(w.amount_due), 0);
+
+                return `
+                    <div class="card" style="padding: 15px;">
+                        <h4 style="margin-bottom: 10px;">${group.group_name}</h4>
+                        <div style="color: #888; font-size: 13px; margin-bottom: 10px;">
+                            <div>Leader: ${group.leader_name || 'N/A'}</div>
+                            <div>Workers: ${unpaidWorkers.length} unpaid</div>
+                            <div>Amount: $${totalAmount.toFixed(2)}</div>
+                        </div>
+                        <button
+                            onclick="payEntireGroup(${group.payment_group_id})"
+                            class="btn btn-success"
+                            style="width: 100%; font-size: 13px; padding: 8px;"
+                            ${unpaidWorkers.length === 0 ? 'disabled' : ''}
+                        >
+                            ${unpaidWorkers.length === 0 ? '✅ All Paid' : '💰 Pay Group'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateGroupFilter(groups) {
+            const filterSelect = document.getElementById('filter-group');
+            filterSelect.innerHTML = '<option value="all">All Groups</option>' +
+                groups.map(g => `<option value="${g.payment_group_id}">${g.group_name}</option>`).join('');
+        }
+
+        function renderWorkersTable(workers) {
+            const tbody = document.getElementById('workers-table-body');
+
+            if (workers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="padding: 40px; text-align: center; color: #666;">No workers found for this period</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = workers.map(worker => {
+                const bonusPenalty = parseFloat(worker.bonus_amount) - parseFloat(worker.penalty_amount);
+                const bonusPenaltyStr = bonusPenalty > 0
+                    ? `<span style="color: #10b981;">+$${bonusPenalty.toFixed(2)}</span>`
+                    : bonusPenalty < 0
+                    ? `<span style="color: #ef4444;">-$${Math.abs(bonusPenalty).toFixed(2)}</span>`
+                    : '<span style="color: #666;">$0.00</span>';
+
+                const statusBadge = worker.paid
+                    ? '<span style="padding: 4px 12px; background: rgba(16, 185, 129, 0.15); color: #10b981; border-radius: 12px; font-size: 12px; font-weight: 600;">✅ PAID</span>'
+                    : '<span style="padding: 4px 12px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-radius: 12px; font-size: 12px; font-weight: 600;">⏳ PENDING</span>';
+
+                return `
+                    <tr style="border-bottom: 1px solid #2a2a2a;" data-worker-id="${worker.worker_id}" data-paid="${worker.paid}" data-group="${worker.payment_group_id || 'none'}">
+                        <td style="padding: 12px 8px;">
+                            <input type="checkbox" class="worker-checkbox" data-worker-id="${worker.worker_id}" ${worker.paid ? 'disabled' : ''} style="width: 18px; height: 18px; cursor: ${worker.paid ? 'not-allowed' : 'pointer'};">
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <div style="font-weight: 500;">${worker.worker_name}</div>
+                            <div style="font-size: 12px; color: #666;">${worker.telegram_handle || 'N/A'}</div>
+                        </td>
+                        <td style="padding: 12px 8px;">
+                            <span style="background: #2a2a2a; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${worker.group_name}</span>
+                        </td>
+                        <td style="padding: 12px 8px; font-size: 13px; color: #888;">${worker.creator_name || '-'}</td>
+                        <td style="padding: 12px 8px; text-align: right; font-weight: 500;">$${worker.base_salary}</td>
+                        <td style="padding: 12px 8px; text-align: right;">${bonusPenaltyStr}</td>
+                        <td style="padding: 12px 8px; text-align: right; font-weight: 600; font-size: 15px;">$${worker.amount_due}</td>
+                        <td style="padding: 12px 8px; text-align: center;">${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.worker-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', handleWorkerSelection);
+            });
+        }
+
+        function filterWorkers() {
+            const statusFilter = document.getElementById('filter-status').value;
+            const groupFilter = document.getElementById('filter-group').value;
+
+            const rows = document.querySelectorAll('#workers-table-body tr[data-worker-id]');
+
+            rows.forEach(row => {
+                let showRow = true;
+
+                // Status filter
+                if (statusFilter === 'paid' && row.dataset.paid !== 'true') showRow = false;
+                if (statusFilter === 'unpaid' && row.dataset.paid === 'true') showRow = false;
+
+                // Group filter
+                if (groupFilter !== 'all' && row.dataset.group !== groupFilter) showRow = false;
+
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+
+        function handleWorkerSelection(e) {
+            const workerId = parseInt(e.target.dataset.workerId);
+            if (e.target.checked) {
+                selectedWorkers.add(workerId);
+            } else {
+                selectedWorkers.delete(workerId);
+            }
+            updateSelectedCount();
+        }
+
+        function selectAllUnpaid() {
+            selectedWorkers.clear();
+            document.querySelectorAll('.worker-checkbox:not(:disabled)').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                if (row.style.display !== 'none') {  // Only select visible rows
+                    checkbox.checked = true;
+                    selectedWorkers.add(parseInt(checkbox.dataset.workerId));
+                }
+            });
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll(e) {
+            if (e.target.checked) {
+                selectAllUnpaid();
+            } else {
+                document.querySelectorAll('.worker-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                selectedWorkers.clear();
+                updateSelectedCount();
+            }
+        }
+
+        function updateSelectedCount() {
+            const count = selectedWorkers.size;
+            document.getElementById('selected-count').textContent = count;
+            document.getElementById('pay-selected-workers').disabled = count === 0;
+            document.getElementById('generate-messages').disabled = count === 0;
+        }
+
+        async function paySelectedWorkers() {
+            if (selectedWorkers.size === 0) {
+                showToast('Please select workers to pay', 'warning');
+                return;
+            }
+
+            const transactionHash = prompt('Enter transaction hash (optional):');
+            const paymentDate = new Date().toISOString().split('T')[0];
+
+            try {
+                const payments = Array.from(selectedWorkers).map(workerId => {
+                    const worker = currentWorkersData.workers.find(w => w.worker_id === workerId);
+                    return {
+                        worker_id: workerId,
+                        amount: parseFloat(worker.amount_due)
+                    };
+                });
+
+                const result = await api('/workers/bulk-pay', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        period: currentPaymentPeriod,
+                        payments,
+                        transaction_hash: transactionHash || null,
+                        payment_date: paymentDate
+                    })
+                });
+
+                showToast(`✅ Successfully paid ${result.workers_paid} workers for $${result.summary.total_amount}!`);
+
+                // Reload payment status
+                await loadPaymentStatus();
+            } catch (err) {
+                console.error('Bulk payment failed:', err);
+                showToast('Failed to process payment: ' + err.message, 'error');
+            }
+        }
+
+        async function payEntireGroup(groupId) {
+            if (!confirm('Pay all unpaid workers in this group?')) return;
+
+            const transactionHash = prompt('Enter transaction hash (optional):');
+            const paymentDate = new Date().toISOString().split('T')[0];
+
+            try {
+                const result = await api('/workers/bulk-pay', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        period: currentPaymentPeriod,
+                        payment_group_ids: [groupId],
+                        transaction_hash: transactionHash || null,
+                        payment_date: paymentDate
+                    })
+                });
+
+                showToast(`✅ Successfully paid ${result.workers_paid} workers for $${result.summary.total_amount}!`);
+
+                // Reload payment status
+                await loadPaymentStatus();
+            } catch (err) {
+                console.error('Group payment failed:', err);
+                showToast('Failed to pay group: ' + err.message, 'error');
+            }
+        }
+
+        async function generatePaymentMessages() {
+            if (selectedWorkers.size === 0) {
+                showToast('Please select workers first', 'warning');
+                return;
+            }
+
+            try {
+                // Get unique payment group IDs from selected workers
+                const groupIds = [...new Set(
+                    Array.from(selectedWorkers)
+                        .map(wid => currentWorkersData.workers.find(w => w.worker_id === wid))
+                        .filter(w => w && w.payment_group_id)
+                        .map(w => w.payment_group_id)
+                )];
+
+                const result = await api('/workers/payment-messages', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        period: currentPaymentPeriod,
+                        payment_group_ids: groupIds,
+                        format: 'telegram',
+                        include_transaction: true
+                    })
+                });
+
+                // Show messages in modal
+                showMessagesModal(result.messages);
+            } catch (err) {
+                console.error('Message generation failed:', err);
+                showToast('Failed to generate messages: ' + err.message, 'error');
+            }
+        }
+
+        function showMessagesModal(messages) {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2>📨 Payment Confirmation Messages</h2>
+                        <button class="close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="max-height: 500px; overflow-y: auto;">
+                        ${messages.map(msg => `
+                            <div class="card" style="margin-bottom: 15px;">
+                                <h3 style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>${msg.group_name}</span>
+                                    <button class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;" onclick="copyToClipboard('${msg.payment_group_id}')">📋 Copy</button>
+                                </h3>
+                                <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
+                                    To: ${msg.leader_telegram || 'N/A'} • Workers: ${msg.workers_count} • Total: $${msg.total_amount}
+                                </div>
+                                <pre id="message-${msg.payment_group_id}" style="background: #0f0f0f; padding: 15px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; font-size: 13px; line-height: 1.6; border: 1px solid #333;">${msg.message}</pre>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function copyToClipboard(groupId) {
+            const messageElement = document.getElementById(`message-${groupId}`);
+            const text = messageElement.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Message copied to clipboard!');
+            });
+        }
+
+        // Make payEntireGroup available globally
+        window.payEntireGroup = payEntireGroup;
+
         async function loadPhones() {
             try {
                 currentData.phones = await api('/phones');
@@ -1833,8 +2266,8 @@ Proxy Password: ${phone.proxy_password || 'Not set'}
                 if (tabName === 'creators') loadCreators();
                 if (tabName === 'dashboard') loadDashboard();
                 if (tabName === 'payments') {
-                    loadPaymentGroups();
-                    loadPayments();
+                    initEnterprisePayments();  // Load new enterprise payment dashboard
+                    loadPaymentGroups();  // Keep legacy payment groups for reference
                 }
                 if (tabName === 'phones') loadPhones();
                 if (tabName === 'onboardings') loadOnboardings();
